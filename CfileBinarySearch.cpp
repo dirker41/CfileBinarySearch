@@ -11,16 +11,17 @@ struct filePointer {
 
 
 
-bool binary_search( filePointer fp1,int first ,int last, char value[blockSize] ) {
+bool binary_search( filePointer fp1,int first ,int last, unsigned char value[blockSize] ) {
     int mid = ( first + last ) / 2 ; 
     unsigned char block[blockSize] ;
     
     fseek ( fp1.fp , mid*blockSize , SEEK_SET );
-    fread (&block,blockSize,1,fp1.fp);
-    printf( "==%s==\n", block);
+    fread (&block,blockSize-1,1,fp1.fp);
+    printf( "ORI==%s==\n", block);
+    printf( "CMP==%s==\n", value);
     
     
-    if ( memcmp(block,value,blockSize)==0 ) return true ;
+    if ( memcmp(block,value,blockSize-2)==0 ) return true ;
     else if( first == last ) return false ;
     else if( memcmp(block,value,blockSize)>0 ) 
       return binary_search( fp1, first, mid, value ) ;
@@ -50,14 +51,27 @@ main() {
    fseek ( fp , 0 , SEEK_SET );
    
    fread (&block,blockSize,1,fp);
-    printf( "first >>%s<<\n", block);
+   unsigned char  showBlock[ blockSize + 1] ;
+   memcpy( showBlock,block,blockSize) ;
+   showBlock[blockSize] = '\0';
+   printf( "first >>%s<<\n", showBlock);
+   if ( block[34] == '\r' ) printf( "is  " );
+   
+   
    
    filePointer fp1 ;
    fp1.fp = fp ;
    
    int blockLength = fileSize/blockSize;
    
-   if (binary_search(fp1,0,blockLength-1,"asdgffdghdlkflkhlfsasddssssdfssss\r\n") )
+   
+   unsigned char cmpStr[blockSize] ;
+   memcpy( cmpStr,"asdgffdghdlkflkhlfsasddssssdfssss\n\r",blockSize) ;
+   cmpStr[33] = 0x0D ;
+   cmpStr[34] = 0x0A ;
+   
+   
+   if (binary_search(fp1,0,blockLength-1,cmpStr) )
      printf( "find!" );
    
    
